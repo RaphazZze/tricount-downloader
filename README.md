@@ -34,15 +34,15 @@ This script allows you to fetch all transactions and attachments from a shared T
 3. Copy the part after `https://tricount.com/`. For example, if your link is `https://tricount.com/tISWyMCgrIMgFuxudZ`, the key is `tISWyMCgrIMgFuxudZ`.
 
 ### Step 2: Run the Script
-1. Replace the placeholder `tricount_key` in the script with your actual Tricount key.
+1. Execute the script:
+   ```bash
+   python main.py
+   ```
+2. When prompted, paste your Tricount URL (e.g. `https://tricount.com/tISWyMCgrIMgFuxudZ`) or just the key (e.g. `tISWyMCgrIMgFuxudZ`).
 
    (Optional) To export to Sesterce, uncomment (remove #) the line `` handler.write_to_sesterce_csv(...) ``
 
    (Optional) To download attachments, uncomment (remove #) the line `` handler.download_attachments(...) ``
-2. Execute the script:
-   ```bash
-   python main.py
-   ```
 
 ### Step 3: Outputs
 1. **Attachments Folder**: Attachments will be saved in a folder named `Attachments {Tricount Title}`.
