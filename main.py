@@ -68,10 +68,18 @@ class TricountHandler:
             currency = transaction["amount"]["currency"]
             description = transaction.get("description", "")
             when = transaction["date"]
+            allocations = transaction["allocations"]
             shares = {
                 alloc["membership"]["RegistryMembershipNonUser"]["alias"]["display_name"]: abs(float(alloc["amount"]["value"]))
-                for alloc in transaction["allocations"]
-                }
+                for alloc in allocations
+            }
+            alloc_types = [alloc["type"] for alloc in allocations]
+            if any(t == "AMOUNT" for t in alloc_types):
+                split_type = "By amounts"
+            elif len(set(alloc["share_ratio"] for alloc in allocations)) <= 1:
+                split_type = "Equal"
+            else:
+                split_type = "By shares"
             category = transaction["category"]
             attachments = transaction.get("attachment", [])
 
@@ -83,6 +91,7 @@ class TricountHandler:
                 "Description": description,
                 "When": when,
                 "Shares": shares,
+                "SplitType": split_type,
                 "Category": category,
                 "Attachments": attachments
             })
@@ -122,27 +131,19 @@ class TricountHandler:
             file.write(response.content)
 
     @staticmethod
-    def prepare_transaction_data(transaction):
-        """
-        Helper method to prepare the data for each transaction.
-        Extracts involved people, formatted date, and attachment URLs.
-        """
-        # List of involved people involved in the transaction
-        involved = ", ".join([name for name, amount in transaction["Shares"].items() if amount > 0])
-
-        # Prepare the row data for the transaction
+    def prepare_transaction_data(transaction, members):
         row_data = [
             transaction["Who Paid"],
             transaction["Total"],
             transaction["Currency"],
             transaction["Description"],
             datetime.strptime(transaction["When"], "%Y-%m-%d %H:%M:%S.%f").strftime("%Y-%m-%d"),
-            involved,
+            transaction["SplitType"],
+            *[transaction["Shares"].get(member, 0) for member in members],
             transaction.get("File Names", ""),
             ", ".join([attach["urls"][0]["url"] for attach in transaction["Attachments"] if "urls" in attach and attach["urls"]]),
             transaction["Category"]
         ]
-        
         return row_data
 
     @staticmethod
@@ -212,27 +213,19 @@ class TricountHandler:
         print(f"Transactions have been saved to {file_name}.xlsx.")
 
     @staticmethod
-    def write_to_csv(transactions, file_name):
-        """
-        Writes transaction data to a CSV file with the given file name.
-
-        Parameters:
-        - transactions (list): A list of transaction data.
-        - file_name (str): The name of the CSV file to save the data to (without the .csv extension).
-
-        The CSV file will have the following headers:
-        "Who Paid", "Total", "Currency", "Description", "When", "Involved", "File Names", "Attachment URLs", "Category"
-
-        Each transaction will be processed by the `prepare_transaction_data` method and written to the file.
-        """
+    def write_to_csv(transactions, file_name, memberships):
+        members = sorted([m["Name"] for m in memberships])
+        headers = (
+            ["Who Paid", "Total", "Currency", "Description", "When", "Split"]
+            + [f"{m}'s share" for m in members]
+            + ["File Names", "Attachment URLs", "Category"]
+        )
         with open(f"{file_name}.csv", "w") as csvfile:
-            headers = ["Who Paid", "Total", "Currency", "Description", "When", "Involved", "File Names", "Attachment URLs", "Category"]
             transaction_writer = csv.writer(csvfile, delimiter=";")
             transaction_writer.writerow(headers)
 
-            # Iterate through each transaction and write its data to the CSV file
             for transaction in transactions:
-                row_data = TricountHandler.prepare_transaction_data(transaction)
+                row_data = TricountHandler.prepare_transaction_data(transaction, members)
                 transaction_writer.writerow(row_data)
 
     @staticmethod
@@ -296,7 +289,7 @@ if __name__ == "__main__":
         memberships, transactions = handler.parse_tricount_data(data)
 
         file_name = f"Transactions {tricount_title}"
-        handler.write_to_csv(transactions, file_name=file_name)
+        handler.write_to_csv(transactions, file_name=file_name, memberships=memberships)
         print(f"Tricount '{tricount_title}' successfully exported to '{file_name}.csv'.")
 
         #handler.write_to_excel(transactions, file_name=f"Transactions {tricount_title}")
