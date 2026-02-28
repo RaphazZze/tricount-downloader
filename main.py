@@ -235,8 +235,6 @@ class TricountHandler:
                 row_data = TricountHandler.prepare_transaction_data(transaction)
                 transaction_writer.writerow(row_data)
 
-            print(f"Transactions have been saved to {file_name}.csv.")
-
     @staticmethod
     def write_to_sesterce_csv(memberships, transactions, file_name):
         """
@@ -269,28 +267,45 @@ class TricountHandler:
 
 
 if __name__ == "__main__":
-    # example key
-    tricount_key = "tISWyMCgrIMgFuxudZ"
+    print("To find your Tricount key: open your Tricount and share it via a public link.")
+    print("You can paste the full URL (e.g. 'https://tricount.com/tISWyMCgrIMgFuxudZ') or just the key (e.g. 'tISWyMCgrIMgFuxudZ').")
+    user_input = input("Enter your Tricount key or URL: ").strip()
 
-    api = TricountAPI()
-    api.authenticate()
-    data = api.fetch_tricount_data(tricount_key)
+    if user_input.startswith("https://tricount.com/"):
+        tricount_key = user_input.replace("https://tricount.com/", "").split("/")[0]
+    else:
+        tricount_key = user_input
 
-    # save data to local file
-    with open('response_data.json', 'w') as f:
-        json.dump(data, f, indent=2)
+    try:
+        print("\nFetching your Tricount data...")
+        api = TricountAPI()
+        api.authenticate()
+        data = api.fetch_tricount_data(tricount_key)
 
-    # load data from local file
-    #with open('response_data.json', 'r') as f:
-    #    data = json.load(f)
+        # save data to local file
+        with open('response_data.json', 'w') as f:
+            json.dump(data, f, indent=2)
 
-    handler = TricountHandler()
-    tricount_title = handler.get_tricount_title(data)
+        # load data from local file
+        #with open('response_data.json', 'r') as f:
+        #    data = json.load(f)
 
-    memberships, transactions = handler.parse_tricount_data(data)
+        handler = TricountHandler()
+        tricount_title = handler.get_tricount_title(data)
 
-    handler.write_to_csv(transactions, file_name=f"Transactions {tricount_title}")
+        memberships, transactions = handler.parse_tricount_data(data)
 
-    #handler.write_to_excel(transactions, file_name=f"Transactions {tricount_title}")
-    #handler.write_to_sesterce_csv(memberships, transactions, f"Transaction {tricount_title} (Sesterce)")
-    #handler.download_attachments(transactions, download_folder=f"Attachments {tricount_title}")
+        file_name = f"Transactions {tricount_title}"
+        handler.write_to_csv(transactions, file_name=file_name)
+        print(f"Tricount '{tricount_title}' successfully exported to '{file_name}.csv'.")
+
+        #handler.write_to_excel(transactions, file_name=f"Transactions {tricount_title}")
+        #handler.write_to_sesterce_csv(memberships, transactions, f"Transaction {tricount_title} (Sesterce)")
+        #handler.download_attachments(transactions, download_folder=f"Attachments {tricount_title}")
+
+    except requests.exceptions.RequestException as e:
+        print(f"Error: Could not reach the Tricount API. Check your internet connection and try again. ({e})")
+    except (KeyError, ValueError):
+        print("Error: Could not parse the Tricount data. Make sure your key or URL is correct.")
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
