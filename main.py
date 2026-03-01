@@ -81,18 +81,29 @@ class TricountHandler:
             else:
                 split_type = "By shares"
             category = transaction["category"]
+            category_custom = transaction.get("category_custom")
             attachments = transaction.get("attachment", [])
+            amount_local = transaction["amount_local"]
+            if amount_local["currency"] != currency:
+                original_amount = abs(float(amount_local["value"]))
+                original_currency = amount_local["currency"]
+            else:
+                original_amount = ""
+                original_currency = ""
 
             transactions.append({
                 "Type": type_transaction,
                 "Who Paid": who_paid,
                 "Total": total,
                 "Currency": currency,
+                "OriginalAmount": original_amount,
+                "OriginalCurrency": original_currency,
                 "Description": description,
                 "When": when,
                 "Shares": shares,
                 "SplitType": split_type,
                 "Category": category,
+                "CategoryCustom": category_custom or "",
                 "Attachments": attachments
             })
 
@@ -136,13 +147,16 @@ class TricountHandler:
             transaction["Who Paid"],
             transaction["Total"],
             transaction["Currency"],
+            transaction["OriginalAmount"],
+            transaction["OriginalCurrency"],
             transaction["Description"],
             datetime.strptime(transaction["When"], "%Y-%m-%d %H:%M:%S.%f").strftime("%Y-%m-%d"),
             transaction["SplitType"],
             *[transaction["Shares"].get(member, 0) for member in members],
             transaction.get("File Names", ""),
             ", ".join([attach["urls"][0]["url"] for attach in transaction["Attachments"] if "urls" in attach and attach["urls"]]),
-            transaction["Category"]
+            transaction["Category"],
+            transaction["CategoryCustom"]
         ]
         return row_data
 
@@ -216,9 +230,9 @@ class TricountHandler:
     def write_to_csv(transactions, file_name, memberships):
         members = sorted([m["Name"] for m in memberships])
         headers = (
-            ["Who Paid", "Total", "Currency", "Description", "When", "Split"]
+            ["Who Paid", "Total", "Currency", "Original Amount", "Original Currency", "Description", "When", "Split"]
             + [f"{m}'s share" for m in members]
-            + ["File Names", "Attachment URLs", "Category"]
+            + ["File Names", "Attachment URLs", "Category", "Custom Category"]
         )
         with open(f"{file_name}.csv", "w") as csvfile:
             transaction_writer = csv.writer(csvfile, delimiter=";")
