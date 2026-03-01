@@ -24,7 +24,23 @@ When prompted, paste your Tricount URL (e.g. `https://tricount.com/tISWyMCgrIMgF
 
 ## Output
 
-A CSV file named `Transactions {Tricount Title}.csv` will be created in the current directory.
+A CSV file named `Transactions {Tricount Title}.csv` will be created in the current directory, with the following columns:
+
+| Column | Description |
+|---|---|
+| Who Paid | Name of the person who paid |
+| Total | Amount paid (in the Tricount's currency) |
+| Currency | Tricount's base currency |
+| Original Amount | Amount in the original currency, if the expense was entered in a different currency |
+| Original Currency | Original currency, if different from the base currency |
+| Description | Expense description |
+| When | Date of the expense |
+| Split | How the expense was split: `Equal`, `By shares`, or `By amounts` |
+| {Member}'s share | One column per member showing their individual share |
+| File Names | Names of downloaded attachment files (if attachments were downloaded) |
+| Attachment URLs | URLs of receipt attachments |
+| Category | Tricount category |
+| Custom Category | Custom category, if set |
 
 ## Optional exports
 
