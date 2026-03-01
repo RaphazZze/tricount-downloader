@@ -1,49 +1,35 @@
-# Tricount API to Excel/CSV
+# Tricount Exporter
 
-This script allows you to fetch all transactions and attachments from a shared Tricount and save them in a structured and user-friendly format.
-
-## Features
-- Retrieve transactions and attachments from a shared Tricount.
-- Save transactions to an Excel file.
-- Save transactions to a CSV file.
-- Export transaction to Sesterce compatible CSV.
-- Download all attachments and organize them in a folder.
+Export your Tricount transactions to CSV, Excel, or Sesterce-compatible format.
 
 ## Installation
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/MrNachoX/tricount-downloader.git
-   cd tricount-downloader
-   ```
-2. Create and activate virtual environment named venv (optional):
-   ```bash
-   python -m venv venv
-   source venv/bin/activate
-   ```
-3. Install the dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
+```bash
+git clone https://github.com/MrNachoX/tricount-downloader.git
+cd tricount-downloader
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
 
 ## Usage
 
-### Step 1: Obtain Your Tricount Key
-1. Open your Tricount.
-2. Share the Tricount via a public link.
-3. Copy the part after `https://tricount.com/`. For example, if your link is `https://tricount.com/tISWyMCgrIMgFuxudZ`, the key is `tISWyMCgrIMgFuxudZ`.
+```bash
+bash run.sh
+```
 
-### Step 2: Run the Script
-1. Execute the script:
-   ```bash
-   python main.py
-   ```
-2. When prompted, paste your Tricount URL (e.g. `https://tricount.com/tISWyMCgrIMgFuxudZ`) or just the key (e.g. `tISWyMCgrIMgFuxudZ`).
+When prompted, paste your Tricount URL (e.g. `https://tricount.com/tISWyMCgrIMgFuxudZ`) or just the key (e.g. `tISWyMCgrIMgFuxudZ`).
 
-   (Optional) To export to Sesterce, uncomment (remove #) the line `` handler.write_to_sesterce_csv(...) ``
+> To find your key: open your Tricount, share it via a public link, and copy the part after `https://tricount.com/`.
 
-   (Optional) To download attachments, uncomment (remove #) the line `` handler.download_attachments(...) ``
+## Output
 
-### Step 3: Outputs
-1. **Attachments Folder**: Attachments will be saved in a folder named `Attachments {Tricount Title}`.
-2. **CSV File**: Transactions will be saved in a file named `Transactions {Tricount Title}.csv`.
+A CSV file named `Transactions {Tricount Title}.csv` will be created in the current directory.
+
+## Optional exports
+
+To enable additional exports, uncomment the relevant lines at the bottom of `main.py`:
+
+- `handler.write_to_excel(...)` — export to Excel
+- `handler.write_to_sesterce_csv(...)` — export to Sesterce-compatible CSV
+- `handler.download_attachments(...)` — download all receipt attachments
